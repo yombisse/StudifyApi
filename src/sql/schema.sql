@@ -1,0 +1,22 @@
+--CREATION DE LA BD
+CREATE DATABASE IF NOT EXISTS studify_db;
+
+USE studify_db;
+
+-- CREATION DE LA TABLE ETUDIANT
+
+CREATE TABLE IF NOT EXISTS students(
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nom VARCHAR(100) NOT NULL,
+    prenom VARCHAR(100) NOT NULL,
+    age INT ,
+    telephone VARCHAR(200) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    profile_url VARCHAR(255) NOT NULL,
+    filiere VARCHAR(100) NOT NULL,
+    sexe CHAR(1),
+    adresse VARCHAR(100) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_sexe CHECK (sexe IN ('M','F'))
+
+)
