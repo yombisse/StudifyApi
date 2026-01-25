@@ -1,19 +1,43 @@
 // StudentsControllers
 
 const studentsController={
-    getAll:(req,res)=>{
-        const query='SELECT * FROM students ORDER BY created_at DESC';
-        req.db.query(query,(err,results)=>{
-            if (err){
-                return res.status(500).json({error:err.message });
-            }
+    getAll: (req, res) => {
+        const { search, sort = 'created_at', order = 'desc', limit = 20, offset = 0 } = req.query;
+
+        let query = 'SELECT * FROM students';
+        const params = [];
+
+        // 🔍 Recherche multi-champs
+        if (search) {
+            query += ' WHERE nom LIKE ? OR prenom LIKE ? OR email LIKE ? OR filiere LIKE ?';
+            const like = `%${search}%`;
+            params.push(like, like, like, like);
+        }
+
+        // 🔃 Tri sécurisé
+        const allowedSortFields = ['nom', 'prenom', 'age', 'created_at', 'filiere'];
+        const allowedOrder = ['asc', 'desc'];
+
+        if (allowedSortFields.includes(sort.toLowerCase()) && allowedOrder.includes(order.toLowerCase())) {
+            query += ` ORDER BY ${sort} ${order.toUpperCase()}`;
+        } else {
+            query += ' ORDER BY created_at DESC';
+        }
+
+        // 📑 Pagination
+        query += ' LIMIT ? OFFSET ?';
+        params.push(parseInt(limit), parseInt(offset));
+
+        req.db.query(query, params, (err, results) => {
+            if (err) return res.status(500).json({ error: err.message });
             res.json({
-                success:true,
-                data:results,
+                success: true,
+                data: results,
                 count: results.length
             });
         });
     },
+
 
     getById:(req,res)=>{
         const query='SELECT * FROM students WHERE id = ? ';
@@ -35,6 +59,51 @@ const studentsController={
             });
         });
     },
+
+    getStats: async (req, res) => {
+        try {
+            // Stats globales
+            const [globalStats] = await req.db.promise().query(`
+                SELECT 
+                    COUNT(*) AS total_etudiants,
+                    AVG(age) AS age_moyen,
+                    MIN(age) AS age_min,
+                    MAX(age) AS age_max,
+                    SUM(CASE WHEN sexe = 'M' THEN 1 ELSE 0 END) AS total_hommes,
+                    SUM(CASE WHEN sexe = 'F' THEN 1 ELSE 0 END) AS total_femmes
+                FROM students
+            `);
+
+            // Répartition par filière
+            const [filiereStats] = await req.db.promise().query(`
+                SELECT filiere, COUNT(*) AS total
+                FROM students
+                GROUP BY filiere
+                ORDER BY total DESC
+                LIMIT 5
+            `);
+
+            // Évolution par mois
+            const [evolutionStats] = await req.db.promise().query(`
+                SELECT DATE_FORMAT(created_at, '%Y-%m') AS mois, COUNT(*) AS total
+                FROM students
+                GROUP BY mois
+                ORDER BY mois DESC
+            `);
+
+            res.json({
+                success: true,
+                stats: {
+                    global: globalStats[0],
+                    par_filiere: filiereStats,
+                    evolution: evolutionStats
+                }
+            });
+        } catch (err) {
+            res.status(500).json({ error: err.message });
+        }
+    },
+
 
     create: (req,res)=>{
         const {nom,prenom,age,telephone,email,profile_url,filiere,sexe,adresse}=req.body;
