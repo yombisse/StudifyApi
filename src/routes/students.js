@@ -8,10 +8,11 @@ const { validateCreateStudent, validateUpdateStudent } = require('../middleware/
 
 // lister tous les etudiants
 router.get('/',studentsController.getAll);
-// afficher un etudiant par son id
-router.get('/:id',studentsController.getById);
 // afficher les statistiques
 router.get('/stats',studentsController.getStats);
+// afficher un etudiant par son id
+router.get('/:id',studentsController.getById);
+
 
 //ajouter ou creer un etudiant
 
