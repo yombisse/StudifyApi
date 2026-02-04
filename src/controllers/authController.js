@@ -1,57 +1,64 @@
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
-const usersController = {
-    // 🔑 Login
-    login: async (req, res) => {
-        try {
-            const { email, password } = req.body;
+const authController = {
+    //  Login
+  login: async (req, res) => {
+    try {
+      const { email, password } = req.body;
 
-            // Vérifier si l'utilisateur existe
-            const [results] = await req.db.promise().query(
-                "SELECT * FROM users WHERE email = ?",
-                [email]
-            );
+      // Vérifier si l'utilisateur existe
+      const [results] = await req.db.promise().query(
+        "SELECT * FROM users WHERE email = ?",
+        [email]
+      );
 
-            if (results.length === 0) {
-                return res.status(404).json({ success: false, message: "Utilisateur introuvable" });
-            }
+      if (results.length === 0) {
+        return res.status(404).json({ success: false, message: "Utilisateur introuvable" });
+      }
 
-            const user = results[0];
+      const user = results[0];
 
-            // Vérifier le mot de passe
-            const isMatch = await bcrypt.compare(password, user.password);
-            if (!isMatch) {
-                return res.status(400).json({ success: false, message: "Mot de passe incorrect" });
-            }
+      // Vérifier le mot de passe
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ success: false, message: "Mot de passe incorrect" });
+      }
 
-            // ✅ Stocker l'utilisateur en session
-            req.session.user = { id: user.id, email: user.email, role: user.role };
+      // ✅ Générer un token JWT
+      const token = jwt.sign(
+        { id: user.id, email: user.email, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" } // durée de validité
+      );
 
-            return res.json({
-                success: true,
-                message: "Connexion réussie",
-                user: req.session.user
-            });
-        } catch (err) {
-            return res.status(500).json({ error: err.message });
-        }
-    },
+      return res.json({
+        success: true,
+        message: "Connexion réussie",
+        token, // ⚡ renvoie le token au client
+        user: { id: user.id, email: user.email, role: user.role }
+      });
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+  },
 
-    // 🚪 Logout
+
+
+    //  Logout
     logout: async (req, res) => {
         try {
-            req.session.destroy((err) => {
-                if (err) {
-                    return res.status(500).json({ success: false, message: "Erreur lors de la déconnexion" });
-                }
-                res.clearCookie("connect.sid"); // ⚡ supprime le cookie de session
-                return res.json({ success: true, message: "Déconnecté avec succès" });
+            // ⚡ Avec JWT, rien à détruire côté serveur
+            return res.json({
+            success: true,
+            message: "Déconnecté avec succès (token supprimé côté client)"
             });
         } catch (err) {
             return res.status(500).json({ error: err.message });
         }
-    },
-    // 🔑 Mot de passe oublié
+        }
+        ,
+    //  Mot de passe oublié
     forgotPassword: async (req, res) => {
         try {
             const { email, newPassword } = req.body;
@@ -83,41 +90,31 @@ const usersController = {
         }
     },
 
-    // 👤 Route profile
+    //  Route profile
     profile: async (req, res) => {
         try {
-            if (!req.session.user) {
-                return res.status(401).json({
-                    success: false,
-                    message: "Non connecté"
-                });
-            }
-
+            // ⚡ req.user est injecté par authMiddleware
             const [results] = await req.db.promise().query(
-                "SELECT id, nom_utilisateur, nom, prenom, email, profile_url, role FROM users WHERE id = ?",
-                [req.session.user.id]
+            "SELECT id, nom_utilisateur, nom, prenom, email, profile_url, role FROM users WHERE id = ?",
+            [req.user.id]
             );
 
             if (results.length === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: "Utilisateur introuvable"
-                });
+            return res.status(404).json({ success: false, message: "Utilisateur introuvable" });
             }
 
             return res.json({
-                success: true,
-                data: results[0]
+            success: true,
+            data: results[0]
             });
         } catch (err) {
             return res.status(500).json({ error: err.message });
         }
-    },
-
-    // ... tes autres méthodes (login, logout, create, update, delete, etc.)
+        },
 
 
-    // 🔍 Récupérer tous les utilisateurs
+   
+    //  Récupérer tous les utilisateurs
     getAll: async (req, res) => {
         try {
             let query = "SELECT * FROM users";
@@ -133,7 +130,7 @@ const usersController = {
         }
     },
 
-    // 🔍 Récupérer par ID
+    //  Récupérer par ID
     getById: async (req, res) => {
         try {
             const [results] = await req.db.promise().query("SELECT * FROM users WHERE id = ?", [req.params.id]);
@@ -148,7 +145,7 @@ const usersController = {
         }
     },
 
-    // ➕ Créer
+    //  Créer
     signIn: async (req, res) => {
         try {
             const { nom_utilisateur, nom, prenom, email, password, profile_url, role } = req.body;
@@ -173,7 +170,7 @@ const usersController = {
         }
     },
 
-    // ✏️ Mettre à jour
+    //  Mettre à jour
     update: async (req, res) => {
         try {
             const { nom_utilisateur, nom, prenom, email, password, profile_url, role } = req.body;
@@ -202,7 +199,7 @@ const usersController = {
         }
     },
 
-    // 🗑️ Supprimer
+    //  Supprimer
     delete: async (req, res) => {
         try {
             const userId = req.params.id;
@@ -219,4 +216,4 @@ const usersController = {
     }
 };
 
-module.exports = usersController;
+module.exports = authController;
