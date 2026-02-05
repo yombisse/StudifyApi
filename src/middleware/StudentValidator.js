@@ -102,8 +102,8 @@ const validateUpdateStudent = (req, res, next) => {
     }
 
     // ✅ Adresse (optionnel mais si fourni, doit être non vide)
-    if (adresse !== undefined && adresse.trim().length < 5) {
-        errors.push("L'adresse doit contenir au moins 5 caractères.");
+    if (adresse !== undefined && adresse.trim().length < 2) {
+        errors.push("L'adresse doit contenir au moins 2 caractères.");
     }
 
     // ⚡ Gestion des erreurs

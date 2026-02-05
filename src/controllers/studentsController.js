@@ -110,11 +110,11 @@ const studentsController={
 
     create: async (req, res) => {
         try {
-            const { nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse } = req.body;
+            const { user_id,nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse } = req.body;
 
             const [result] = await req.db.promise().query(
-                'INSERT INTO students (nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse]
+                'INSERT INTO students (user_id,nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [user_id,nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse]
             );
 
             const [results] = await req.db.promise().query('SELECT * FROM students WHERE id = ?', [result.insertId]);
@@ -132,12 +132,12 @@ const studentsController={
     // ✏️ Mettre à jour
     update: async (req, res) => {
         try {
-            const { nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse } = req.body;
+            const { user_id,nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse } = req.body;
             const studentId = req.params.id;
 
             const [result] = await req.db.promise().query(
-                'UPDATE students SET nom=?, prenom=?, age=?, telephone=?, email=?, profile_url=?, filiere=?, sexe=?, adresse=? WHERE id = ?',
-                [nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse, studentId]
+                'UPDATE students SET user_id=?, nom=?, prenom=?, age=?, telephone=?, email=?, profile_url=?, filiere=?, sexe=?, adresse=? WHERE id = ?',
+                [user_id, nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse, studentId]
             );
 
             if (result.affectedRows === 0) {

@@ -4,29 +4,22 @@ const authController = require('../controllers/authController');
 const { validateCreateUser, validateUpdateUser } = require('../middleware/authValidator');
 const { authMiddleware } = require('../middleware/authMiddleware'); // ⚡ ton middleware JWT
 
-// lister tous les utilisateurs (protégé)
-router.get('/', authMiddleware, authController.getAll);
 
-// afficher un utilisateur par son id (protégé)
-router.get('/:id', authMiddleware, authController.getById);
+// Routes publiques
+router.post("/register", validateCreateUser, authController.register);
+router.post("/login", authController.login);
+router.post("/forgot-password", authController.forgotPassword);
+router.post("/logout", authController.logout);
 
-// profil utilisateur connecté (protégé)
-router.get('/profile', authMiddleware, authController.profile);
-// mise à jour d’un utilisateur (protégé)
-router.put('/:id', authMiddleware, validateUpdateUser, authController.update);
+// Routes protégées
+router.get("/profile", authMiddleware, authController.profile);
+router.get("", authMiddleware, authController.getAll);
+router.get("/:id", authMiddleware, authController.getById);
+router.put("/:id", authMiddleware, validateUpdateUser, authController.update);
+router.delete("/:id", authMiddleware, authController.delete);
 
-// supprimer un utilisateur (protégé)
-router.delete('/:id', authMiddleware, authController.delete);
+module.exports = router;
 
-// inscription (création d’un utilisateur) → public
-router.post('/signin', validateCreateUser, authController.signIn);
-
-// login → public
-router.post('/login', authController.login);
-
-// logout → avec JWT, ce n’est plus nécessaire (on supprime juste le token côté client)
-// tu peux garder pour compatibilité
-router.post('/logout', authController.logout);
 
 
 module.exports = router;
