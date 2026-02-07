@@ -2,7 +2,7 @@
 
 const validateCreateUser = (req, res, next) => {
     const { nom_utilisateur, email, password, role } = req.body;
-    const errors = [];
+    const errors = {};
 
     if (!nom_utilisateur || nom_utilisateur.trim().length < 2) {
         errors.push("Le nom d'utilisateur doit contenir au moins 2 caractères.");
@@ -10,12 +10,12 @@ const validateCreateUser = (req, res, next) => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
     if (!emailRegex.test(email)) {
-        errors.push("Format d'email invalide.");
+        errors.email = "Format d'email invalide.";
     }
 
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=<>?{}[\]~])[A-Za-z\d!@#$%^&*()_\-+=<>?{}[\]~]{8,12}$/;
     if (!passwordRegex.test(password)) {
-        errors.push("Le mot de passe doit contenir entre 8 et 12 caractères, avec au moins une majuscule, un chiffre et un caractère spécial.");
+        errors.password = "Le mot de passe doit contenir entre 8 et 12 caractères, avec au moins une majuscule, un chiffre et un caractère spécial.";
     }
 
     // Normalisation du rôle
@@ -26,12 +26,12 @@ const validateCreateUser = (req, res, next) => {
 
     const allowedRoles = ["admin", "teacher", "student"];
     if (!allowedRoles.includes(normalizedRole)) {
-        errors.push("Le rôle doit être 'admin', 'teacher' ou 'student'.");
+        errors.role = "Le rôle doit être 'admin', 'teacher' ou 'student'.";
     }
     req.body.role = normalizedRole;
 
-    if (errors.length > 0) {
-        return res.status(400).json({ errors });
+    if (Object.keys(errors).length > 0) {
+        return res.status(400).json({ success: false, errors });
     }
 
     next();
@@ -39,29 +39,29 @@ const validateCreateUser = (req, res, next) => {
 
 const validateUpdateUser = (req, res, next) => {
     const { nom_utilisateur, nom, prenom, email, password, profile_url, role } = req.body;
-    const errors = [];
+    const errors = {};
 
     if (nom_utilisateur !== undefined && nom_utilisateur.trim().length < 2) {
-        errors.push("Le nom d'utilisateur doit contenir au moins 2 caractères.");
+        errors.nom_utilisateur = "Le nom d'utilisateur doit contenir au moins 2 caractères.";
     }
     if (nom !== undefined && nom.trim().length < 2) {
-        errors.push("Le nom doit contenir au moins 2 caractères.");
+        errors.nom = "Le nom doit contenir au moins 2 caractères.";
     }
     if (prenom !== undefined && prenom.trim().length < 2) {
-        errors.push("Le prénom doit contenir au moins 2 caractères.");
+        errors.prenom = "Le prénom doit contenir au moins 2 caractères.";
     }
 
     if (email !== undefined) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            errors.push("Format d'email invalide.");
+            errors.email = "Format d'email invalide.";
         }
     }
 
     if (password !== undefined) {
         const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=<>?{}[\]~])[A-Za-z\d!@#$%^&*()_\-+=<>?{}[\]~]{8,12}$/;
         if (!passwordRegex.test(password)) {
-            errors.push("Le mot de passe doit contenir entre 8 et 12 caractères, avec au moins une majuscule, un chiffre et un caractère spécial.");
+            errors.password = "Le mot de passe doit contenir entre 8 et 12 caractères, avec au moins une majuscule, un chiffre et un caractère spécial.";
         }
     }
 
@@ -73,12 +73,12 @@ const validateUpdateUser = (req, res, next) => {
 
     const allowedRoles = ["admin", "teacher", "student"];
     if (!allowedRoles.includes(normalizedRole)) {
-        errors.push("Le rôle doit être 'admin', 'teacher' ou 'student'.");
+        errors.role = "Le rôle doit être 'admin', 'teacher' ou 'student'.";
     }
     req.body.role = normalizedRole;
 
-    if (errors.length > 0) {
-        return res.status(400).json({ errors });
+    if (Object.keys(errors).length > 0) {
+        return res.status(400).json({ success: false, errors });
     }
 
     next();

@@ -37,8 +37,7 @@ app.use((err, req, res, next) => {
   console.error(" Erreur:", err.stack);
   res.status(500).json({
     success: false,
-    error: "Erreur interne du serveur",
-    message: err.message,
+    errors: { general: "Erreur interne du serveur" }
   });
 });
 
@@ -46,7 +45,7 @@ app.use((err, req, res, next) => {
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "Route non trouvée",
+    errors: { general: "Route non trouvée" }
   });
 });
 module.exports = app;

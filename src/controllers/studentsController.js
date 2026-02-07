@@ -37,7 +37,7 @@ const studentsController={
                 });
         } catch (err){
            
-           return res.status(500).json({ error: err.message });
+           return res.status(500).json({ success: false, errors: { general: err.message } });
         }
     },
 
@@ -50,7 +50,7 @@ const studentsController={
             if (results.length===0){
                 return res.status(404).json({
                     success:false,
-                    message: 'Etudiant non trouvé'
+                    errors: { general: 'Etudiant non trouvé' }
                 });
             }
             return res.json({
@@ -103,7 +103,7 @@ const studentsController={
                 }
             });
         } catch (err) {
-            res.status(500).json({ error: err.message });
+            res.status(500).json({ success: false, errors: { general: err.message } });
         }
     },
 
@@ -141,7 +141,7 @@ const studentsController={
             );
 
             if (result.affectedRows === 0) {
-                return res.status(404).json({ success: false, message: "L'étudiant spécifié n'a pas été trouvé" });
+                return res.status(404).json({ success: false, errors: { general: "L'étudiant spécifié n'a pas été trouvé" } });
             }
 
             const [results] = await req.db.promise().query('SELECT * FROM students WHERE id=?', [studentId]);
@@ -152,7 +152,7 @@ const studentsController={
                 data: results[0]
             });
         } catch (err) {
-            return res.status(500).json({ error: err.message });
+            return res.status(500).json({ success: false, errors: { general: err.message } });
         }
     },
 
@@ -163,12 +163,12 @@ const studentsController={
             const [result] = await req.db.promise().query('DELETE FROM students WHERE id=?', [studentId]);
 
             if (result.affectedRows === 0) {
-                return res.status(404).json({ success: false, message: "L'étudiant à supprimer n'a pas été trouvé" });
+                return res.status(404).json({ success: false, errors: { general: "L'étudiant à supprimer n'a pas été trouvé" } });
             }
 
             return res.status(200).json({ success: true, message: 'Etudiant supprimé avec succès!' });
         } catch (err) {
-            return res.status(500).json({ error: err.message });
+            return res.status(500).json({ success: false, errors: { general: err.message } });
         }
     }
 };

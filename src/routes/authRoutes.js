@@ -9,6 +9,7 @@ const { authMiddleware } = require('../middleware/authMiddleware'); // ⚡ ton m
 router.post("/register", validateCreateUser, authController.register);
 router.post("/login", authController.login);
 router.post("/forgot-password", authController.forgotPassword);
+router.post("/check-email", authController.checkEmailExists);
 router.post("/logout", authController.logout);
 
 // Routes protégées
@@ -16,6 +17,7 @@ router.get("/profile", authMiddleware, authController.profile);
 router.get("", authMiddleware, authController.getAll);
 router.get("/:id", authMiddleware, authController.getById);
 router.put("/:id", authMiddleware, validateUpdateUser, authController.update);
+router.post("/change-password",authMiddleware, authController.changePassword)
 router.delete("/:id", authMiddleware, authController.delete);
 
 module.exports = router;

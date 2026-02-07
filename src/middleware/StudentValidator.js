@@ -39,7 +39,7 @@ const validateCreateStudent=(req,res,next)=>{
         }
 
         if (errors.length > 0) {
-            return res.status(400).json({ errors });
+            return res.status(400).json({ success: false, errors });
         }
 
         next();
@@ -108,7 +108,7 @@ const validateUpdateStudent = (req, res, next) => {
 
     // ⚡ Gestion des erreurs
     if (errors.length > 0) {
-        return res.status(400).json({ errors });
+        return res.status(400).json({ success: false, errors });
     }
 
     next();
