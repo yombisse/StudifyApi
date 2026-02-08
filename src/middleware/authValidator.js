@@ -5,7 +5,7 @@ const validateCreateUser = (req, res, next) => {
     const errors = {};
 
     if (!nom_utilisateur || nom_utilisateur.trim().length < 2) {
-        errors.push("Le nom d'utilisateur doit contenir au moins 2 caractères.");
+        errors.nom_utilisateur = "Le nom d'utilisateur doit contenir au moins 2 caractères.";
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; 
@@ -13,9 +13,9 @@ const validateCreateUser = (req, res, next) => {
         errors.email = "Format d'email invalide.";
     }
 
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=<>?{}[\]~])[A-Za-z\d!@#$%^&*()_\-+=<>?{}[\]~]{8,12}$/;
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=<>?{}[\]~])[A-Za-z\d!@#$%^&*()_\-+=<>?{}[\]~]{8,16}$/;
     if (!passwordRegex.test(password)) {
-        errors.password = "Le mot de passe doit contenir entre 8 et 12 caractères, avec au moins une majuscule, un chiffre et un caractère spécial.";
+        errors.password = "Le mot de passe doit contenir entre 8 et 16 caractères, avec au moins une majuscule, un chiffre et un caractère spécial.";
     }
 
     // Normalisation du rôle

@@ -181,7 +181,7 @@ const authController = {
       // Vérifier le mot de passe
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        return res.status(400).json({ success: false, errors: { password: "Mot de passe incorrect " } });
+        return res.status(401).json({ success: false, errors: { password: "Mot de passe incorrect " } });
       }
 
       // ✅ Générer un token JWT
