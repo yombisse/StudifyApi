@@ -1,0 +1,64 @@
+# docker-compose.yml - Configuration Docker pour StudifyAPI
+
+services:
+  # -----------------------------------------------------------------------------
+  # Service MySQL - Base de données
+  # -----------------------------------------------------------------------------
+  mysql:
+    image: mysql:8                          # Image officielle MySQL version 8
+    container_name: studify-mysql           # Nom du conteneur pour docker ps
+    restart: always                          # Redémarre automatiquement si plantage
+    environment:                             # Variables d'environnement MySQL
+      MYSQL_ALLOW_EMPTY_PASSWORD: "true"    # Requis pour MySQL 8.4+ si mot de passe vide
+      MYSQL_DATABASE: studify_db             # Nom de la base de données
+    ports:                                   # Mapping des ports
+      - "3307:3306"                          # Hôte:3307 -> Conteneur:3306
+    volumes:                                 # Volumes persistants
+      - mysql_data:/var/lib/mysql            # Données MySQL persistantes
+      - ./src/sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql  # Script init
+    healthcheck:                             # Vérification de santé du conteneur
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root"]
+      interval: 10s                           # Vérifier toutes les 10s
+      timeout: 5s                             # Timeout si pas de réponse en 5s
+      retries: 5                              # Réessayer 5 fois avant de déclarer HS
+      start_period: 30s                       # Temps d'initialisation avant premier test
+
+  # -----------------------------------------------------------------------------
+  # Service API - Application Node.js
+  # -----------------------------------------------------------------------------
+  api:
+    build:                                  # Construction du Dockerfile
+      context: .                             # Contexte de construction (dossier courant)
+      dockerfile: Dockerfile                 # Nom du Dockerfile
+    container_name: studify-api             # Nom du conteneur
+    restart: always                          # Redémarrage automatique
+    ports:                                   # Mapping des ports
+      - "3000:3000"                          # Hôte:3000 -> Conteneur:3000
+    environment:                             # Variables d'environnement pour l'API
+      DB_HOST: mysql                         # Nom du service MySQL (résolu par Docker DNS)
+      DB_USER: root                          # Utilisateur MySQL
+      DB_PASSWORD: ""                        # Mot de passe vide (comme dans ton app)
+      DB_NAME: studify_db                     # Nom de la base de données
+      PORT: 3000                             # Port d'écoute de l'API (optionnel, défaut=3000)
+    depends_on:                              # Ordre de démarrage
+      mysql:                                 # Dépend du service mysql
+        condition: service_healthy           # Attendre que MySQL soit "healthy"
+    volumes:                                 # Volumes pour développement
+      - ./:/StudifyApi                       # Mount du code (hot-reload)
+      - /StudifyApi/node_modules             # Séparer node_modules du host
+
+# =============================================================================
+# VOLUMES: Stockage persistant
+# =============================================================================
+volumes:
+  mysql_data:                               # Volume nommé pour les données MySQL
+    driver: local                           # Stockage local sur l'hôte
+
+# =============================================================================
+# RESEAUX: Communication entre services (optionnel, créé automatiquement)
+# =============================================================================
+networks:
+  default:
+    name: studify-network                   # Réseau personnalisé pour l'isolation
+    driver: bridge                          # Type de réseau (bridge = défaut)
+
