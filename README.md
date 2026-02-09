@@ -185,7 +185,8 @@ Authorization: Bearer <token>
 npm start          # Démarrer le serveur
 npm test           # Exécuter les tests
 ```
-
+## Service en ligne
+url: https://studify-latest.onrender.com
 ## 📄 Licence
 
 ISC

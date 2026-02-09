@@ -15,10 +15,10 @@ RUN npm install
 # Note: Les fichiers .dockerignore sont automatiquement exclus
 COPY . .
 
-# Expose le port sur lequel l'API écoute (défini dans server.js)
-EXPOSE 3000
+# Expose le port sur lequel l'API écoute
+# Render définit PORT dynamiquement, on utilise donc cette variable
+EXPOSE ${PORT:-3000}
 
-# Commande pour lancer l'API avec node directement
-# Pas de "npm start" car le script n'est pas défini dans package.json
+# Commande pour lancer l'API avec node en utilisant le port dynamique
 CMD ["node", "index.js"]
 

@@ -1,6 +1,8 @@
 const app = require("./server"); 
 const config = require("./src/models/db"); 
-const PORT = config.server.port || 3000;
+
+// Render fournit PORT via les variables d'environnement
+const PORT = process.env.PORT || 3000 ;
 
 app.listen(PORT, () => {
   console.log(` Serveur démarré sur le port ${PORT}`);

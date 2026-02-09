@@ -5,6 +5,9 @@ const cors = require("cors");
 const config = require("./src/models/db");
 
 const app = express();
+const path = require('path');
+// Permet de servir les fichiers statiques
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Middleware global
 app.use(cors());
@@ -28,7 +31,12 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
+// Page d'accueil / Documentation (fichier statique)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'home.html'));
+});
+
+// API Routes
 app.use("/api/students", require("./src/routes/students"));
 app.use("/api/auth", require("./src/routes/authRoutes"));
 
