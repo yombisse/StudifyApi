@@ -3,8 +3,6 @@ CREATE DATABASE IF NOT EXISTS studify_db;
 
 USE studify_db;
 
-
-
 CREATE TABLE IF NOT EXISTS users(
     id INT AUTO_INCREMENT PRIMARY KEY,
     nom_utilisateur VARCHAR(100) NOT NULL DEFAULT 'user',
@@ -16,7 +14,6 @@ CREATE TABLE IF NOT EXISTS users(
     role ENUM('admin','teacher','student') NOT NULL DEFAULT 'admin',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-
 
 );
 

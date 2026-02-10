@@ -1,6 +1,6 @@
 // app.js - Serveur final complet
 const express = require("express");
-const mysql = require("mysql2");
+const mysql = require("mysql2/promise");
 const cors = require("cors");
 const config = require("./src/models/db");
 
@@ -14,16 +14,29 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Connexion à la base de données
-const db = mysql.createConnection(config.db);
+// Pool de connexions à la base de données
+// Le pool gère automatiquement les connexions multiples et la reconnexion
+// Note: mysql2/promise retourne déjà l'API avec promises
+const db = mysql.createPool({
+  ...config.db,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0
+});
 
-db.connect((err) => {
-  if (err) {
+// Vérifier la connexion au démarrage
+(async () => {
+  try {
+    const connection = await db.getConnection();
+    console.log(" Connecté à la base de données MySQL");
+    connection.release();
+  } catch (err) {
     console.error(" Erreur de connexion à la base de données:", err.message);
     process.exit(1);
   }
-  console.log(" Connecté à la base de données MySQL");
-});
+})();
 
 // Middleware pour injecter la DB dans req
 app.use((req, res, next) => {

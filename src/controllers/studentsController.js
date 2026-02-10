@@ -28,7 +28,7 @@ const studentsController={
             // 📑 Pagination
             query += ' LIMIT ? OFFSET ?';
             params.push(parseInt(limit), parseInt(offset));
-            const [results]= await req.db.promise().query(query,params);
+            const [results]= await req.db.query(query,params);
         
                 return res.json({
                     success: true,
@@ -45,7 +45,7 @@ const studentsController={
     getById: async (req,res)=>{
         try {
             
-            const [results] = await req.db.promise().query('SELECT * FROM students WHERE id = ?', [req.params.id]);
+            const [results] = await req.db.query('SELECT * FROM students WHERE id = ?', [req.params.id]);
         
             if (results.length===0){
                 return res.status(404).json({
@@ -66,7 +66,7 @@ const studentsController={
     getStats: async (req, res) => {
         try {
             // Stats globales
-            const [globalStats] = await req.db.promise().query(`
+            const [globalStats] = await req.db.query(`
                 SELECT 
                     COUNT(*) AS total_etudiants,
                     AVG(age) AS age_moyen,
@@ -78,7 +78,7 @@ const studentsController={
             `);
 
             // Répartition par filière
-            const [filiereStats] = await req.db.promise().query(`
+            const [filiereStats] = await req.db.query(`
                 SELECT filiere, COUNT(*) AS total
                 FROM students
                 GROUP BY filiere
@@ -87,7 +87,7 @@ const studentsController={
             `);
 
             // Évolution par mois
-            const [evolutionStats] = await req.db.promise().query(`
+            const [evolutionStats] = await req.db.query(`
                 SELECT DATE_FORMAT(created_at, '%Y-%m') AS mois, COUNT(*) AS total
                 FROM students
                 GROUP BY mois
@@ -111,13 +111,14 @@ const studentsController={
     create: async (req, res) => {
         try {
             const { user_id,nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse } = req.body;
+            const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-            const [result] = await req.db.promise().query(
-                'INSERT INTO students (user_id,nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-                [user_id,nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse]
+            const [result] = await req.db.query(
+                'INSERT INTO students (user_id,nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                [user_id,nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse, now, now]
             );
 
-            const [results] = await req.db.promise().query('SELECT * FROM students WHERE id = ?', [result.insertId]);
+            const [results] = await req.db.query('SELECT * FROM students WHERE id = ?', [result.insertId]);
 
             return res.status(201).json({
                 success: true,
@@ -134,17 +135,18 @@ const studentsController={
         try {
             const { user_id,nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse } = req.body;
             const studentId = req.params.id;
+            const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-            const [result] = await req.db.promise().query(
-                'UPDATE students SET user_id=?, nom=?, prenom=?, age=?, telephone=?, email=?, profile_url=?, filiere=?, sexe=?, adresse=? WHERE id = ?',
-                [user_id, nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse, studentId]
+            const [result] = await req.db.query(
+                'UPDATE students SET user_id=?, nom=?, prenom=?, age=?, telephone=?, email=?, profile_url=?, filiere=?, sexe=?, adresse=?, updated_at=? WHERE id = ?',
+                [user_id, nom, prenom, age, telephone, email, profile_url, filiere, sexe, adresse, now, studentId]
             );
 
             if (result.affectedRows === 0) {
                 return res.status(404).json({ success: false, errors: { general: "L'étudiant spécifié n'a pas été trouvé" } });
             }
 
-            const [results] = await req.db.promise().query('SELECT * FROM students WHERE id=?', [studentId]);
+            const [results] = await req.db.query('SELECT * FROM students WHERE id=?', [studentId]);
 
             return res.status(200).json({
                 success: true,
@@ -160,7 +162,7 @@ const studentsController={
     delete: async (req, res) => {
         try {
             const studentId = req.params.id;
-            const [result] = await req.db.promise().query('DELETE FROM students WHERE id=?', [studentId]);
+            const [result] = await req.db.query('DELETE FROM students WHERE id=?', [studentId]);
 
             if (result.affectedRows === 0) {
                 return res.status(404).json({ success: false, errors: { general: "L'étudiant à supprimer n'a pas été trouvé" } });

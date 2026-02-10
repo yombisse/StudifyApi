@@ -1,6 +1,6 @@
 # Dockerfile - Image Node.js pour StudifyAPI
 # Utilise l'image officielle Node.js version 18 LTS
-FROM node:18
+FROM --platform=linux/amd64 node:18
 
 # Crée le dossier de travail dans le conteneur
 WORKDIR /StudifyApi

@@ -9,7 +9,7 @@ const authController = {
     getAll: async (req, res) => {
         try {
             let query = "SELECT * FROM users";
-            const [results] = await req.db.promise().query(query);
+            const [results] = await req.db.query(query);
 
             return res.json({
                 success: true,
@@ -24,7 +24,7 @@ const authController = {
     //  Récupérer par ID
     getById: async (req, res) => {
         try {
-            const [results] = await req.db.promise().query("SELECT * FROM users WHERE id = ?", [req.params.id]);
+            const [results] = await req.db.query("SELECT * FROM users WHERE id = ?", [req.params.id]);
 
             if (results.length === 0) {
                 return res.status(404).json({ success: false, errors: { general: "Utilisateur non trouvé" } });
@@ -39,7 +39,7 @@ const authController = {
     profile: async (req, res) => {
         try {
             // ⚡ req.user est injecté par authMiddleware
-            const [results] = await req.db.promise().query(
+            const [results] = await req.db.query(
             "SELECT id, nom_utilisateur, nom, prenom, email, profile_url, role FROM users WHERE id = ?",
             [req.user.id]
             );
@@ -64,7 +64,7 @@ const authController = {
             const userId = req.user.id;
 
             // 🔎 Récupérer l'utilisateur actuel
-            const [curentResults] = await req.db.promise().query(
+            const [curentResults] = await req.db.query(
                 "SELECT * FROM users WHERE id = ?",
                 [userId]
             );
@@ -86,11 +86,12 @@ const authController = {
                 email: email ?? existingUser.email,
                 profile_url: profile_url ?? existingUser.profile_url,
                 role: role ?? existingUser.role,
-                password: hashedPassword
+                password: hashedPassword,
+                updated_at: new Date().toISOString().slice(0, 19).replace('T', ' ')
             };
-            await req.db.promise().query(
+            await req.db.query(
                 `UPDATE users 
-                SET nom_utilisateur=?, nom=?, prenom=?, email=?, password=?, profile_url=?, role=? 
+                SET nom_utilisateur=?, nom=?, prenom=?, email=?, password=?, profile_url=?, role=?, updated_at=? 
                 WHERE id=?`,
                 [
                     updatedData.nom_utilisateur,
@@ -100,11 +101,12 @@ const authController = {
                     updatedData.password,
                     updatedData.profile_url,
                     updatedData.role,
+                    updatedData.updated_at,
                     userId
                 ]
             );
 
-            const [results] = await req.db.promise().query(
+            const [results] = await req.db.query(
                 "SELECT id, nom_utilisateur, nom, prenom, email, profile_url, role FROM users WHERE id=?",
                 [userId]
             );
@@ -125,7 +127,7 @@ const authController = {
     delete: async (req, res) => {
         try {
             const userId = req.params.id;
-            const [result] = await req.db.promise().query("DELETE FROM users WHERE id=?", [userId]);
+            const [result] = await req.db.query("DELETE FROM users WHERE id=?", [userId]);
 
             if (result.affectedRows === 0) {
                 return res.status(404).json({ success: false, errors: { general: "Utilisateur introuvable" } });
@@ -145,12 +147,14 @@ const authController = {
             // ⚡ Hash du mot de passe avant insertion
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            const [result] = await req.db.promise().query(
-                "INSERT INTO users (nom_utilisateur, nom, prenom, email, password, profile_url, role) VALUES (?, ?, ?, ?, ?, ?, ?)",
-                [nom_utilisateur, nom, prenom, email, hashedPassword, profile_url, role]
+            const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
+            
+            const [result] = await req.db.query(
+                "INSERT INTO users (nom_utilisateur, nom, prenom, email, password, profile_url, role, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                [nom_utilisateur, nom, prenom, email, hashedPassword, profile_url, role, now, now]
             );
 
-            const [results] = await req.db.promise().query("SELECT * FROM users WHERE id = ?", [result.insertId]);
+            const [results] = await req.db.query("SELECT * FROM users WHERE id = ?", [result.insertId]);
 
             return res.status(201).json({
                 success: true,
@@ -167,7 +171,7 @@ const authController = {
       const { email, password } = req.body;
 
       // Vérifier si l'utilisateur existe
-      const [results] = await req.db.promise().query(
+      const [results] = await req.db.query(
         "SELECT * FROM users WHERE email = ?",
         [email]
       );
@@ -223,7 +227,7 @@ const authController = {
             const { email, newPassword } = req.body;
 
             // Vérifier si l'utilisateur existe
-            const [results] = await req.db.promise().query(
+            const [results] = await req.db.query(
                 "SELECT * FROM users WHERE email = ?",
                 [email]
             );
@@ -234,10 +238,11 @@ const authController = {
 
             // ⚡ Hash du nouveau mot de passe
             const hashedPassword = await bcrypt.hash(newPassword, 10);
+            const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-            await req.db.promise().query(
-                "UPDATE users SET password=? WHERE email=?",
-                [hashedPassword, email]
+            await req.db.query(
+                "UPDATE users SET password=?, updated_at=? WHERE email=?",
+                [hashedPassword, now, email]
             );
 
             return res.json({
@@ -259,7 +264,7 @@ const authController = {
         }
 
         // Vérifier si l'utilisateur existe
-        const [results] = await req.db.promise().query(
+        const [results] = await req.db.query(
             "SELECT * FROM users WHERE  id = ?",
             [userId]
         );
@@ -280,7 +285,7 @@ const authController = {
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
         // Mettre à jour en base
-        await req.db.promise().query(
+        await req.db.query(
             "UPDATE users SET password = ? WHERE id = ?",
             [hashedPassword, userId]
         );
@@ -305,7 +310,7 @@ const authController = {
                 return res.status(400).json({ success: false, errors: { email: "Email requis" } });
             }
 
-            const [results] = await req.db.promise().query(
+            const [results] = await req.db.query(
                 "SELECT id FROM users WHERE email = ?",
                 [email]
             );
